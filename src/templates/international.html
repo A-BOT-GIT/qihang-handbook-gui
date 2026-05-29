@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <style>
+    html, body { margin: 0; width: 100%; height: 100%; background: #f5f0e7; }
+    body { font-family: "Noto Sans CJK SC","PingFang SC","Microsoft YaHei",sans-serif; }
+    .page {
+      position: relative;
+      width: 1600px;
+      height: 2400px;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 15% 12%, rgba(73, 183, 176, 0.08), transparent 26%),
+        radial-gradient(circle at 82% 16%, rgba(240, 154, 74, 0.12), transparent 24%),
+        linear-gradient(180deg, #fffdf9 0%, #f7f2ea 100%);
+    }
+    .page::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(90deg, rgba(17, 33, 49, 0.025) 1px, transparent 1px) 0 0 / 72px 72px,
+        linear-gradient(rgba(17, 33, 49, 0.025) 1px, transparent 1px) 0 0 / 72px 72px;
+      pointer-events: none;
+    }
+    .kicker {
+      position: absolute;
+      left: 120px;
+      top: 82px;
+      font-size: 22px;
+      color: #95836d;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+    }
+    .title {
+      position: absolute;
+      left: var(--title-x);
+      top: var(--title-y);
+      margin: 0;
+      font-size: 86px;
+      line-height: 0.98;
+      letter-spacing: -0.06em;
+      color: #17202b;
+      font-weight: 900;
+      width: 760px;
+      max-width: 760px;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+    .subtitle {
+      position: absolute;
+      left: var(--subtitle-x);
+      top: var(--subtitle-y);
+      font-size: 34px;
+      color: #5d6773;
+      font-weight: 700;
+      max-width: 700px;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+    .body {
+      position: absolute;
+      left: var(--body-x);
+      top: var(--body-y);
+      width: 700px;
+      font-size: 28px;
+      line-height: 1.72;
+      color: #17202b;
+      font-weight: 700;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      max-height: 560px;
+      overflow: hidden;
+    }
+    .contact {
+      position: absolute;
+      left: var(--contact-x);
+      top: var(--contact-y);
+      width: 1180px;
+      padding: 18px 24px;
+      border-radius: 18px;
+      background: #263445;
+      color: #fff;
+      font-size: 24px;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      max-height: 180px;
+      overflow: hidden;
+    }
+    .hero {
+      position: absolute;
+      left: var(--hero-x);
+      top: var(--hero-y);
+      width: var(--hero-w);
+      height: var(--hero-h);
+      border-radius: 32px;
+      overflow: hidden;
+      box-shadow: 0 24px 48px rgba(18, 26, 36, 0.16);
+      background: #dde2e8;
+    }
+    .hero img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .page-no {
+      position: absolute;
+      right: 120px;
+      bottom: 92px;
+      font-size: 34px;
+      color: #37414d;
+      font-weight: 800;
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="kicker">{{kicker}}</div>
+    <h1 class="title">{{title}}</h1>
+    <div class="subtitle">{{subtitle}}</div>
+    <div class="body">{{body}}</div>
+    <div class="contact">{{contact}}</div>
+    <div class="hero"><img src="{{imageMain}}" alt="" /></div>
+    <div class="page-no">{{pageNo}}</div>
+  </div>
+</body>
+</html>
