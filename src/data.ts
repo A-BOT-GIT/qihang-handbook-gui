@@ -84,8 +84,8 @@ const createContentsPage = (): PageDefinition => ({
 export const defaultProject: ProjectState = {
   projectName: '起航研学产品手册',
   assets: [
-    { id: 'asset-1', name: '寻根之旅客家与闽南.jpg', url: '/assets/寻根之旅客家与闽南.jpg' },
-    { id: 'asset-2', name: '微信图片_20260526230233_606_2.jpg', url: '/assets/微信图片_20260526230233_606_2.jpg' }
+    { id: 'asset-1', name: '寻根之旅客家与闽南.jpg', url: './assets/寻根之旅客家与闽南.jpg' },
+    { id: 'asset-2', name: '微信图片_20260526230233_606_2.jpg', url: './assets/微信图片_20260526230233_606_2.jpg' }
   ],
   activePageId: 'brand',
   pages: [createBrandPage(), createCoursePage(), createInternationalPage(), createContentsPage()]
