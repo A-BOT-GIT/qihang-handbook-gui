@@ -178,7 +178,7 @@ function buildFallbackPage(name: string, title: string | undefined, html: string
 function buildPageFromHtmlNode(name: string, title: string | undefined, html: string, node: Element, index: number): PageDefinition {
   const pageLabel = node.getAttribute('data-page-name') || node.getAttribute('aria-label') || node.id || `${title ?? name} - ${index + 1}`;
   const imageNodes = Array.from(node.querySelectorAll('img'));
-  const textNodes = Array.from(node.querySelectorAll('[class*="title"], [class*="subtitle"], [class*="body"], [class*="contact"], h1, h2, h3, p, .text'));
+  const textNodes = Array.from(node.querySelectorAll('[class*="title"], [class*="subtitle"], [class*="body"], [class*="contact"], [class*="desc"], [class*="caption"], [class*="text"], [class*="badge"], [class*="chip"], [class*="bullet"], [class*="big"], [class*="lead"], [class*="label"], h1, h2, h3, h4, h5, h6, p, blockquote, li, figcaption'));
 
   const elements: PageElement[] = [];
   if (textNodes.length) {
