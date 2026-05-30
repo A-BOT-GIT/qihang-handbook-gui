@@ -531,7 +531,8 @@ export default function App() {
   };
 
   function buildHtml(page: PageDefinition, assets: Asset[]) {
-    if (page.templateHtml) {
+    // 只有模板含 {{slot}} 占位符时才走模板渲染，否则降级到元素渲染
+    if (page.templateHtml && /\{\{/.test(page.templateHtml)) {
       return renderTemplate(page, assets);
     }
     const styleVars = `--canvas-w:${CANVAS_W}px;--canvas-h:${CANVAS_H}px;`;
