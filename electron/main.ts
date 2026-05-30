@@ -12,7 +12,7 @@ function createWindow() {
     height: 900,
     minWidth: 1024,
     minHeight: 700,
-    show: false,
+    show: true,
     backgroundColor: '#fbf8f2',
     webPreferences: {
       preload: path.join(__dirname, 'preload.mjs'),
@@ -40,10 +40,15 @@ function createWindow() {
   }
 
   win.once('ready-to-show', () => {
-    win.show();
     if (!isDev) {
       createAppMenu();
     }
+  });
+
+  win.webContents.on('did-fail-load', (_event, code, desc, url) => {
+    console.error('[main] did-fail-load:', code, desc, url);
+    // 加载失败时显示错误页
+    win.loadURL(`data:text/html,<h1>加载失败</h1><p>${desc}</p>`);
   });
 
   win.on('closed', () => {
