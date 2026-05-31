@@ -58,7 +58,12 @@ async function buildElectron() {
 async function startElectron() {
   console.log('🚀 Starting Electron...');
   const electronPath = resolve(root, 'node_modules/.bin/electron');
-  const child = spawn(electronPath, [root, '--dev'], {
+  const electronArgs = [root, '--dev'];
+  if (process.platform === 'linux') {
+    electronArgs.push('--no-sandbox');
+  }
+
+  const child = spawn(electronPath, electronArgs, {
     cwd: root,
     stdio: 'inherit',
     env: { ...process.env, NODE_ENV: 'development' },

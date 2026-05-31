@@ -11,6 +11,48 @@ type DragMode = 'move' | 'resize-br' | null;
 
 type Point = { x: number; y: number };
 
+type CssEditorState = {
+  color: string;
+  backgroundColor: string;
+  fontSize: string;
+  fontWeight: string;
+  lineHeight: string;
+  letterSpacing: string;
+  textAlign: string;
+  width: string;
+  height: string;
+  marginTop: string;
+  marginBottom: string;
+  padding: string;
+  borderRadius: string;
+  borderWidth: string;
+  borderColor: string;
+  opacity: string;
+  transform: string;
+  display: string;
+};
+
+const DEFAULT_CSS_EDITOR_STATE: CssEditorState = {
+  color: '',
+  backgroundColor: '',
+  fontSize: '',
+  fontWeight: '',
+  lineHeight: '',
+  letterSpacing: '',
+  textAlign: 'left',
+  width: '',
+  height: '',
+  marginTop: '',
+  marginBottom: '',
+  padding: '',
+  borderRadius: '',
+  borderWidth: '',
+  borderColor: '',
+  opacity: '',
+  transform: '',
+  display: '',
+};
+
 function clamp(v: number, min: number, max: number) {
   return Math.max(min, Math.min(max, v));
 }
@@ -25,6 +67,24 @@ function rectsOverlap(a: Rect, b: Rect) {
 
 function stripHtmlTags(input: string): string {
   return input.replace(/<[^>]*>/g, '');
+}
+
+function inferImageMime(name: string): string {
+  const ext = name.split('.').pop()?.toLowerCase();
+  switch (ext) {
+    case 'jpg':
+    case 'jpeg':
+      return 'image/jpeg';
+    case 'webp':
+      return 'image/webp';
+    case 'gif':
+      return 'image/gif';
+    case 'svg':
+      return 'image/svg+xml';
+    case 'png':
+    default:
+      return 'image/png';
+  }
 }
 
 function normalizeTemplateName(input: string): string {
@@ -103,6 +163,25 @@ function ActionButton({ label, onClick, disabled }: { label: string; onClick: ()
     <button className="action-chip" onClick={onClick} disabled={disabled}>
       {label}
     </button>
+  );
+}
+
+function CssTextField({
+  label,
+  value,
+  onChange,
+  placeholder
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+}) {
+  return (
+    <label className="field compact">
+      <span>{label}</span>
+      <input type="text" value={value} placeholder={placeholder} onChange={(e) => onChange(e.target.value)} />
+    </label>
   );
 }
 
@@ -295,6 +374,77 @@ function getPageThumbnail(page: PageDefinition, assets: Asset[]) {
   };
 }
 
+function parsePx(value: string) {
+  const match = value.match(/-?\d+(?:\.\d+)?/);
+  return match ? Number(match[0]) : 0;
+}
+
+function parseCssLength(value: string) {
+  const trimmed = value.trim();
+  if (!trimmed) return '';
+  return trimmed;
+}
+
+function normalizeCssColor(value: string) {
+  const trimmed = value.trim();
+  return trimmed;
+}
+
+function describeCssElement(element: HTMLElement) {
+  const tag = element.tagName.toLowerCase();
+  const id = element.id ? `#${element.id}` : '';
+  const cls = element.classList.length ? `.${Array.from(element.classList).slice(0, 3).join('.')}` : '';
+  return `${tag}${id}${cls}`;
+}
+
+function extractCssEditorState(element: HTMLElement | null): CssEditorState {
+  if (!element) return DEFAULT_CSS_EDITOR_STATE;
+  const style = window.getComputedStyle(element);
+  return {
+    color: style.color,
+    backgroundColor: style.backgroundColor,
+    fontSize: style.fontSize,
+    fontWeight: style.fontWeight,
+    lineHeight: style.lineHeight,
+    letterSpacing: style.letterSpacing,
+    textAlign: style.textAlign,
+    width: style.width,
+    height: style.height,
+    marginTop: style.marginTop,
+    marginBottom: style.marginBottom,
+    padding: style.padding,
+    borderRadius: style.borderRadius,
+    borderWidth: style.borderWidth,
+    borderColor: style.borderColor,
+    opacity: style.opacity,
+    transform: style.transform === 'none' ? '' : style.transform,
+    display: style.display,
+  };
+}
+
+function toCssPatch(state: CssEditorState) {
+  return {
+    color: state.color,
+    backgroundColor: state.backgroundColor,
+    fontSize: state.fontSize,
+    fontWeight: state.fontWeight,
+    lineHeight: state.lineHeight,
+    letterSpacing: state.letterSpacing,
+    textAlign: state.textAlign,
+    width: state.width,
+    height: state.height,
+    marginTop: state.marginTop,
+    marginBottom: state.marginBottom,
+    padding: state.padding,
+    borderRadius: state.borderRadius,
+    borderWidth: state.borderWidth,
+    borderColor: state.borderColor,
+    opacity: state.opacity,
+    transform: state.transform,
+    display: state.display,
+  };
+}
+
 const isElectron = typeof window !== 'undefined' && !!window.electronAPI;
 
 export default function App() {
@@ -309,7 +459,13 @@ export default function App() {
   const [future, setFuture] = useState<ProjectState[]>([]);
   const previewRef = useRef<HTMLDivElement | null>(null);
   const [sourceOpen, setSourceOpen] = useState(false);
+  const [sourceMode, setSourceMode] = useState<'css' | 'source'>('css');
+  const [htmlDraft, setHtmlDraft] = useState('');
+  const [selectedCss, setSelectedCss] = useState<CssEditorState>(DEFAULT_CSS_EDITOR_STATE);
+  const [iframeSelectionLabel, setIframeSelectionLabel] = useState('未选择 iframe 元素');
   const sourceDraftRef = useRef<string>('');
+  const iframeSelectionRef = useRef<HTMLElement | null>(null);
+  const iframeDocRef = useRef<Document | null>(null);
 
   const activePage = useMemo(
     () => project.pages.find((page) => page.id === project.activePageId) ?? project.pages[0],
@@ -348,7 +504,7 @@ export default function App() {
     });
   };
 
-  const selectedElement = activePage?.elements.find((el) => el.id === selectedElementId) ?? activePage?.elements.find((el) => !el.locked) ?? activePage?.elements[0];
+  const selectedElement = activePage?.elements.find((el) => el.id === selectedElementId);
 
   useEffect(() => {
     if (!activePage) return;
@@ -478,26 +634,137 @@ export default function App() {
         activePageId: importedPages[0]?.id ?? prev.activePageId
       }));
     } else if (type === 'image') {
-      const binaryResults = await Promise.all(paths.map(async (filePath) => {
-        return window.electronAPI!.readBinaryFile(filePath);
-      }));
-      const newAssets: Asset[] = binaryResults.filter(Boolean).map((result) => ({
-        id: uid(result!.name),
-        name: result!.name,
-        url: `data:image/png;base64,${result!.data}`,
+      const binaryResults = await Promise.all(paths.map(async (filePath) => window.electronAPI!.readBinaryFile(filePath)));
+      const newAssets: Asset[] = binaryResults.filter((result): result is { data: string; name: string } => Boolean(result)).map((result) => ({
+        id: uid(result.name),
+        name: result.name,
+        url: `data:${inferImageMime(result.name)};base64,${result.data}`,
       }));
       patchProject((prev) => ({ ...prev, assets: [...newAssets, ...prev.assets] }));
     }
   };
 
   const applySourceEdit = () => {
-    const html = sourceDraftRef.current;
+    const html = htmlDraft || sourceDraftRef.current;
     if (!html || !activePage) return;
     updateActivePage((page) => ({
       ...page,
       templateHtml: html,
     }));
     setSourceOpen(false);
+  };
+
+  const applyIframeEdit = () => {
+    const iframe = document.querySelector('.template-iframe') as HTMLIFrameElement;
+    if (!iframe || !iframe.contentDocument || !activePage) return;
+    const html = '<!doctype html>' + iframe.contentDocument.documentElement.outerHTML;
+    updateActivePage((page) => ({
+      ...page,
+      templateHtml: html,
+    }));
+  };
+
+  const initIframeEditing = () => {
+    const iframe = document.querySelector('.template-iframe') as HTMLIFrameElement | null;
+    if (!iframe || !iframe.contentDocument) return;
+    const doc = iframe.contentDocument;
+    iframeDocRef.current = doc;
+
+    const clearSelection = () => {
+      doc.querySelectorAll('[data-css-editor-selected="true"]').forEach((item) => {
+        (item as HTMLElement).removeAttribute('data-css-editor-selected');
+      });
+      iframeSelectionRef.current = null;
+      setIframeSelectionLabel('未选择 iframe 元素');
+      setSelectedCss(DEFAULT_CSS_EDITOR_STATE);
+    };
+
+    const selectElement = (el: HTMLElement) => {
+      clearSelection();
+      el.setAttribute('data-css-editor-selected', 'true');
+      iframeSelectionRef.current = el;
+      setIframeSelectionLabel(describeCssElement(el));
+      setSelectedCss(extractCssEditorState(el));
+    };
+
+    // 给所有文本容器加 contentEditable
+    const textEls = doc.querySelectorAll('h1,h2,h3,h4,h5,h6,p,li,span,div,figcaption,blockquote,td,th,label,a');
+    textEls.forEach((el) => {
+      const htmlEl = el as HTMLElement;
+      if (htmlEl.children.length === 0 || htmlEl.innerText.trim().length > 0) {
+        htmlEl.setAttribute('contenteditable', 'true');
+        htmlEl.style.outline = 'none';
+        htmlEl.style.cursor = 'text';
+        htmlEl.addEventListener('focus', () => {
+          selectElement(htmlEl);
+          htmlEl.style.outline = '2px solid rgba(73,183,176,0.6)';
+          htmlEl.style.outlineOffset = '2px';
+        });
+        htmlEl.addEventListener('blur', () => {
+          htmlEl.style.outline = 'none';
+        });
+        htmlEl.addEventListener('click', (e) => {
+          e.stopPropagation();
+          selectElement(htmlEl);
+        });
+      }
+    });
+
+    // 给所有图片加点击替换
+    const imgs = doc.querySelectorAll('img');
+    imgs.forEach((img) => {
+      img.style.cursor = 'pointer';
+      img.title = '点击替换图片';
+      img.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        selectElement(img as HTMLElement);
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/*';
+        input.onchange = () => {
+          const file = input.files?.[0];
+          if (file) {
+            const reader = new FileReader();
+            reader.onload = () => {
+              img.src = reader.result as string;
+              setSelectedCss((prev) => ({ ...prev, width: `${img.clientWidth}px`, height: `${img.clientHeight}px` }));
+            };
+            reader.readAsDataURL(file);
+          }
+        };
+        input.click();
+      });
+    });
+
+    // 给所有可见元素加缩放能力
+    const allEls = doc.querySelectorAll('h1,h2,h3,h4,h5,h6,p,div,img,section,article,figure,ul,ol');
+    allEls.forEach((el) => {
+      const htmlEl = el as HTMLElement;
+      if (htmlEl.offsetWidth < 20 || htmlEl.offsetHeight < 20) return;
+      htmlEl.style.position = htmlEl.style.position || 'relative';
+      htmlEl.style.resize = 'both';
+      htmlEl.style.overflow = 'auto';
+      htmlEl.addEventListener('click', (e) => {
+        e.stopPropagation();
+        selectElement(htmlEl);
+      });
+    });
+
+    doc.body.addEventListener('click', (e) => {
+      if (e.target === doc.body) {
+        clearSelection();
+      }
+    });
+
+    // 注入编辑提示样式
+    const style = doc.createElement('style');
+    style.textContent = `
+      [contenteditable]:hover { outline: 1px dashed rgba(73,183,176,0.4) !important; outline-offset: 2px; }
+      [data-css-editor-selected="true"] { outline: 2px solid rgba(240,154,74,0.75) !important; outline-offset: 2px; }
+      img:hover { outline: 2px solid rgba(240,154,74,0.6) !important; outline-offset: 2px; }
+    `;
+    doc.head.appendChild(style);
   };
 
   const exportHtml = async () => {
@@ -695,7 +962,63 @@ export default function App() {
   };
 
   const selectedImageAsset = selectedElement?.kind === 'image' ? project.assets.find((asset) => asset.id === selectedElement.assetId) : undefined;
+  const selectedIframeElement = useMemo(() => {
+    if (!sourceOpen) return null;
+    const iframe = document.querySelector('.template-iframe') as HTMLIFrameElement | null;
+    return iframe?.contentDocument?.querySelector('[data-css-editor-selected="true"]') as HTMLElement | null;
+  }, [sourceOpen, activePage?.id, htmlDraft]);
 
+  const readSelectedElementStyle = (element: HTMLElement | null) => {
+    if (!element) return null;
+    const style = window.getComputedStyle(element);
+    return {
+      color: style.color,
+      backgroundColor: style.backgroundColor,
+      fontSize: style.fontSize,
+      fontWeight: style.fontWeight,
+      lineHeight: style.lineHeight,
+      letterSpacing: style.letterSpacing,
+      textAlign: style.textAlign as 'left' | 'center' | 'right' | 'justify',
+      width: style.width,
+      height: style.height,
+      marginTop: style.marginTop,
+      marginBottom: style.marginBottom,
+      padding: style.padding,
+      borderRadius: style.borderRadius,
+      borderWidth: style.borderWidth,
+      borderColor: style.borderColor,
+      opacity: style.opacity,
+      transform: style.transform,
+      display: style.display,
+    };
+  };
+
+  const applyCssPatchToIframeElement = (patch: Partial<CssEditorState>) => {
+    const el = iframeSelectionRef.current;
+    if (!el) return;
+    Object.entries(patch).forEach(([key, value]) => {
+      if (value == null || value === '') return;
+      (el.style as any)[key] = key === 'opacity' ? String(clamp(Number(value), 0, 1)) : String(value);
+    });
+    setSelectedCss((prev) => ({ ...prev, ...patch }));
+  };
+
+  const commitCssEditorState = () => {
+    applyCssPatchToIframeElement(toCssPatch(selectedCss));
+  };
+
+  useEffect(() => {
+    if (!sourceOpen) return;
+    const iframe = document.querySelector('.template-iframe') as HTMLIFrameElement | null;
+    const doc = iframe?.contentDocument;
+    if (!doc) return;
+
+    const selected = iframeSelectionRef.current ?? doc.querySelector('[data-css-editor-selected="true"]') as HTMLElement | null;
+    if (selected) {
+      setIframeSelectionLabel(describeCssElement(selected));
+      setSelectedCss(extractCssEditorState(selected));
+    }
+  }, [sourceOpen, selectedElementId, sourceMode, htmlDraft]);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -713,14 +1036,20 @@ export default function App() {
     window.addEventListener('keydown', onKeyDown);
 
     // Electron menu event listeners
+    let removeImportHtml: (() => void) | undefined;
+    let removeImportImage: (() => void) | undefined;
     if (isElectron) {
       const api = window.electronAPI!;
-      api.onImportHtmlFiles((paths) => importFilesFromPaths(paths, 'html'));
-      api.onImportImageFiles((paths) => importFilesFromPaths(paths, 'image'));
+      const handleImportHtml = (paths: string[]) => importFilesFromPaths(paths, 'html');
+      const handleImportImage = (paths: string[]) => importFilesFromPaths(paths, 'image');
+      removeImportHtml = api.onImportHtmlFiles(handleImportHtml);
+      removeImportImage = api.onImportImageFiles(handleImportImage);
     }
 
     return () => {
       window.removeEventListener('keydown', onKeyDown);
+      removeImportHtml?.();
+      removeImportImage?.();
     };
   }, [history.length, future.length, project]);
 
@@ -757,7 +1086,11 @@ export default function App() {
           </div>
           <div className="topbar-actions">
             <button className="export-btn" onClick={exportHtml}>导出当前页 HTML</button>
-            <ToolbarButton label={sourceOpen ? '关闭源码' : '编辑源码'} onClick={() => setSourceOpen((v) => !v)} />
+            <ToolbarButton label={sourceOpen ? '关闭编辑' : '可视化编辑'} onClick={() => {
+              setSourceOpen((v) => !v);
+              setHtmlDraft(activePage?.templateHtml || buildHtml(activePage, project.assets));
+              setSourceMode('css');
+            }} />
             <ToolbarButton label="保存项目 JSON" onClick={exportJson} />
           </div>
         </div>
@@ -842,19 +1175,78 @@ export default function App() {
       {sourceOpen ? (
         <div className="source-panel">
           <div className="source-panel-head">
-            <div>HTML 源码编辑 — {activePage?.name}</div>
-            <button className="debug-action" onClick={() => setSourceOpen(false)}>关闭</button>
+            <div>可视化编辑 — {activePage?.name}</div>
+            <div>
+              <button className={`debug-action ${sourceMode === 'css' ? 'active' : ''}`} onClick={() => setSourceMode('css')} style={{ marginRight: 8 }}>CSS 编辑</button>
+              <button className={`debug-action ${sourceMode === 'source' ? 'active' : ''}`} onClick={() => { setSourceMode('source'); setHtmlDraft(activePage?.templateHtml || buildHtml(activePage, project.assets)); }} style={{ marginRight: 8 }}>源码编辑</button>
+              <button className="debug-action" onClick={applyIframeEdit} style={{ marginRight: 8 }}>保存修改</button>
+              <button className="debug-action" onClick={() => setSourceOpen(false)}>关闭</button>
+            </div>
           </div>
-          <textarea
-            className="source-textarea"
-            defaultValue={buildHtml(activePage, project.assets)}
-            onChange={(e) => { sourceDraftRef.current = e.target.value; }}
-            spellCheck={false}
+          <div className="info-line">点击元素后，右侧可直接改 CSS；文本仍可直接编辑，图片支持点击替换。</div>
+          <iframe
+            className="template-iframe"
+            srcDoc={htmlDraft || activePage?.templateHtml || buildHtml(activePage, project.assets)}
+            onLoad={initIframeEditing}
           />
-          <div className="source-panel-foot">
-            <button className="export-btn" onClick={applySourceEdit}>应用修改</button>
-            <span style={{ marginLeft: 12, fontSize: 13, color: '#4a5662' }}>修改后点击"应用"保存到当前页</span>
-          </div>
+          {sourceMode === 'css' ? (
+            <div className="css-editor-panel">
+              <div className="css-editor-title">{iframeSelectionLabel}</div>
+              <div className="layout-grid">
+                <CssTextField label="颜色" value={selectedCss.color} onChange={(value) => applyCssPatchToIframeElement({ color: normalizeCssColor(value) })} placeholder="#17202b / rgb(...)" />
+                <CssTextField label="背景" value={selectedCss.backgroundColor} onChange={(value) => applyCssPatchToIframeElement({ backgroundColor: normalizeCssColor(value) })} placeholder="#fff / rgba(...)" />
+              </div>
+              <div className="layout-grid">
+                <CssTextField label="字体大小" value={selectedCss.fontSize} onChange={(value) => applyCssPatchToIframeElement({ fontSize: parseCssLength(value) })} placeholder="28px" />
+                <CssTextField label="字重" value={selectedCss.fontWeight} onChange={(value) => applyCssPatchToIframeElement({ fontWeight: value })} placeholder="700" />
+              </div>
+              <div className="layout-grid">
+                <CssTextField label="行高" value={selectedCss.lineHeight} onChange={(value) => applyCssPatchToIframeElement({ lineHeight: value })} placeholder="1.5" />
+                <CssTextField label="字间距" value={selectedCss.letterSpacing} onChange={(value) => applyCssPatchToIframeElement({ letterSpacing: parseCssLength(value) })} placeholder="0px" />
+              </div>
+              <div className="layout-grid">
+                <CssTextField label="宽度" value={selectedCss.width} onChange={(value) => applyCssPatchToIframeElement({ width: parseCssLength(value) })} placeholder="320px" />
+                <CssTextField label="高度" value={selectedCss.height} onChange={(value) => applyCssPatchToIframeElement({ height: parseCssLength(value) })} placeholder="auto / 120px" />
+              </div>
+              <div className="layout-grid">
+                <CssTextField label="外边距上" value={selectedCss.marginTop} onChange={(value) => applyCssPatchToIframeElement({ marginTop: parseCssLength(value) })} placeholder="0" />
+                <CssTextField label="外边距下" value={selectedCss.marginBottom} onChange={(value) => applyCssPatchToIframeElement({ marginBottom: parseCssLength(value) })} placeholder="0" />
+              </div>
+              <div className="layout-grid">
+                <CssTextField label="内边距" value={selectedCss.padding} onChange={(value) => applyCssPatchToIframeElement({ padding: parseCssLength(value) })} placeholder="12px 16px" />
+                <CssTextField label="圆角" value={selectedCss.borderRadius} onChange={(value) => applyCssPatchToIframeElement({ borderRadius: parseCssLength(value) })} placeholder="16px" />
+              </div>
+              <div className="layout-grid">
+                <CssTextField label="边框宽度" value={selectedCss.borderWidth} onChange={(value) => applyCssPatchToIframeElement({ borderWidth: parseCssLength(value) })} placeholder="1px" />
+                <CssTextField label="边框颜色" value={selectedCss.borderColor} onChange={(value) => applyCssPatchToIframeElement({ borderColor: normalizeCssColor(value) })} placeholder="#ddd" />
+              </div>
+              <div className="layout-grid">
+                <CssTextField label="透明度" value={selectedCss.opacity} onChange={(value) => applyCssPatchToIframeElement({ opacity: String(clamp(Number(value || 1), 0, 1)) })} placeholder="0.8" />
+                <CssTextField label="显示方式" value={selectedCss.display} onChange={(value) => applyCssPatchToIframeElement({ display: value })} placeholder="block / flex" />
+              </div>
+              <div className="layout-grid">
+                <CssTextField label="文本对齐" value={selectedCss.textAlign} onChange={(value) => applyCssPatchToIframeElement({ textAlign: value })} placeholder="left / center / right" />
+                <CssTextField label="变换" value={selectedCss.transform} onChange={(value) => applyCssPatchToIframeElement({ transform: value })} placeholder="none / scale(.9)" />
+              </div>
+              <div className="source-panel-foot">
+                <button className="export-btn" onClick={commitCssEditorState}>应用 CSS 到当前元素</button>
+                <span style={{ marginLeft: 12, fontSize: 13, color: '#4a5662' }}>改动会实时反映在预览里，导出时保留到当前页源码。</span>
+              </div>
+            </div>
+          ) : (
+            <div className="source-code-panel">
+              <textarea
+                className="source-textarea"
+                value={htmlDraft}
+                onChange={(e) => setHtmlDraft(e.target.value)}
+                placeholder="在这里编辑 HTML 源码"
+              />
+              <div className="source-panel-foot">
+                <button className="export-btn" onClick={applySourceEdit}>应用源码到当前页</button>
+                <span style={{ marginLeft: 12, fontSize: 13, color: '#4a5662' }}>源码模式用于直接编辑 HTML 结构和 CSS。</span>
+              </div>
+            </div>
+          )}
         </div>
       ) : null}
       </main>

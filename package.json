@@ -8,7 +8,7 @@
   "type": "module",
   "main": "dist-electron/main.mjs",
   "scripts": {
-    "dev": "concurrently -k \"vite\" \"sleep 3 && electron . --dev\"",
+    "dev": "concurrently -k \"vite\" \"node scripts/dev-electron.mjs\"",
     "dev:web": "vite",
     "dev:electron": "node scripts/dev-electron.mjs",
     "build": "npm run build:renderer && npm run build:electron",
@@ -53,16 +53,15 @@
     "win": {
       "target": [
         {
-          "target": "nsis",
-          "arch": ["x64"]
-        },
-        {
           "target": "portable",
-          "arch": ["x64"]
+          "arch": [
+            "x64"
+          ]
         }
       ],
       "icon": "build/icon.ico",
-      "artifactName": "${productName}-${version}-${arch}.${ext}"
+      "artifactName": "${productName}-${version}-${arch}.${ext}",
+      "signAndEditExecutable": false
     },
     "nsis": {
       "oneClick": false,
@@ -77,12 +76,18 @@
       "installerHeaderIcon": "build/icon.ico"
     },
     "linux": {
-      "target": ["AppImage", "deb"],
+      "target": [
+        "AppImage",
+        "deb"
+      ],
       "icon": "build/icon.png"
     },
     "mac": {
-      "target": ["dmg", "zip"],
-      "icon": "build/icon.icns",
+      "target": [
+        "dmg",
+        "zip"
+      ],
+      "icon": "build/icon.png",
       "category": "public.app-category.productivity"
     }
   }

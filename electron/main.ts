@@ -1,12 +1,90 @@
 import { app, BrowserWindow, Menu, Tray, nativeTheme, ipcMain, dialog, shell } from 'electron';
 import path from 'path';
 import fs from 'fs';
+import os from 'os';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const isDev = process.env.NODE_ENV === 'development' || process.argv.includes('--dev');
 let mainWindow: BrowserWindow | null = null;
 let tray: Tray | null = null;
 
+// ── 崩溃安全启动日志（第一行即写日志）──
+let crashLogFile: string;
+(function initCrashLog() {
+  const crashLogDir = path.join(os.homedir(), '.qihang-crash-logs');
+  try {
+    fs.mkdirSync(crashLogDir, { recursive: true });
+  } catch (_) {}
+  crashLogFile = path.join(crashLogDir, 'crash.log');
+  fs.appendFileSync(crashLogFile, `--- BOOT ${new Date().toISOString()} pid=${process.pid} ---\n`, 'utf-8');
+})();
+
+function crashLog(msg: string) {
+  const line = `[${new Date().toISOString()}] ${msg}`;
+  try {
+    fs.appendFileSync(crashLogFile, `${line}\n`, 'utf-8');
+  } catch (_) {}
+  process.stderr.write(`[QIHANG] ${line}\n`);
+}
+
+crashLog(`main.ts loaded, cwd=${process.cwd()} platform=${process.platform}`);
+
+process.on('uncaughtException', function(err: Error) {
+  crashLog(`UNCAUGHT: ${err.message}\n${err.stack || ''}`);
+});
+
+process.on('unhandledRejection', function(reason: any) {
+  crashLog(`UNHANDLED_REJECTION: ${String(reason)}`);
+});
+
+// ── 延迟初始化路径（app.getPath 需在 ready 后调用才安全）──
+let userDataDir: string | null = null;
+let stateFile: string;
+let debugFile: string;
+
+function ensureDirs() {
+  if (userDataDir) return;
+  try {
+    userDataDir = app.getPath('userData');
+  } catch (e: any) {
+    crashLog(`WARN: app.getPath(userData) failed, using fallback: ${e.message}`);
+    userDataDir = path.join(os.homedir(), '.qihang-handbook');
+  }
+  crashLog(`userDataDir=${userDataDir}`);
+  stateFile = path.join(userDataDir, 'state.json');
+  debugFile = path.join(userDataDir, 'debug.log');
+  try {
+    fs.mkdirSync(userDataDir, { recursive: true });
+  } catch (_) {}
+}
+
+function appendDebugLog(entry: any) {
+  ensureDirs();
+  try {
+    const payload = {
+      time: new Date().toISOString(),
+      level: entry.level || 'info',
+      source: entry.source || 'unknown',
+      message: entry.message || '',
+      detail: entry.detail,
+    };
+    fs.appendFileSync(debugFile, JSON.stringify(payload) + '\n', 'utf-8');
+  } catch (e: any) {
+    crashLog(`appendDebugLog error: ${e.message}`);
+  }
+}
+
 function createWindow() {
+  crashLog(`createWindow called, isPackaged=${app.isPackaged}`);
+  ensureDirs();
+
+  const preloadPath = path.join(__dirname, 'preload.mjs');
+  crashLog(`preload path=${preloadPath} exists=${fs.existsSync(preloadPath)}`);
+
   const win = new BrowserWindow({
     width: 1440,
     height: 900,
@@ -15,7 +93,7 @@ function createWindow() {
     show: true,
     backgroundColor: '#fbf8f2',
     webPreferences: {
-      preload: path.join(__dirname, 'preload.mjs'),
+      preload: preloadPath,
       nodeIntegration: false,
       contextIsolation: true,
       sandbox: false,
@@ -32,23 +110,69 @@ function createWindow() {
     win.setMenuBarVisibility(false);
   }
 
+  const startUrl = isDev ? 'http://localhost:5173' : `file://${path.join(__dirname, '../dist/index.html')}`;
+  crashLog(`loading URL: ${startUrl}`);
+  appendDebugLog({
+    level: 'info',
+    source: 'main',
+    message: 'createWindow',
+    detail: { startUrl, packaged: app.isPackaged, __dirname },
+  });
+
   if (isDev) {
-    win.loadURL('http://localhost:5173');
+    win.loadURL(startUrl);
     win.webContents.openDevTools({ mode: 'bottom' });
   } else {
     win.loadFile(path.join(__dirname, '../dist/index.html'));
   }
 
+  win.webContents.on('did-fail-load', function(_event: any, code: number, desc: string, url: string) {
+    crashLog(`did-fail-load code=${code} desc=${desc}`);
+    appendDebugLog({
+      level: 'error',
+      source: 'main',
+      message: 'did-fail-load',
+      detail: { code, description: desc, url },
+    });
+  });
+
+  win.webContents.on('render-process-gone', function(_event: any, details: any) {
+    crashLog(`render-process-gone: ${JSON.stringify(details)}`);
+    appendDebugLog({
+      level: 'error',
+      source: 'main',
+      message: 'render-process-gone',
+      detail: details,
+    });
+  });
+
+  win.webContents.on('unresponsive', function() {
+    crashLog('renderer unresponsive');
+    appendDebugLog({
+      level: 'warn',
+      source: 'main',
+      message: 'renderer-unresponsive',
+    });
+  });
+
+  // 捕获渲染进程Console（包括JS报错）
+  win.webContents.on('console-message', function(_event: any, level: number, message: string, line: number, sourceId: string) {
+    const levels = ['verbose', 'info', 'warning', 'error'];
+    crashLog(`[RENDERER:${levels[level] || level}] ${message}${sourceId ? ` (${sourceId}:${line})` : ''}`);
+  });
+
+  win.webContents.on('dom-ready', function() {
+    crashLog('renderer DOM ready');
+  });
+
+  win.webContents.on('did-finish-load', function() {
+    crashLog('renderer did-finish-load');
+  });
+
   win.once('ready-to-show', () => {
     if (!isDev) {
       createAppMenu();
     }
-  });
-
-  win.webContents.on('did-fail-load', (_event, code, desc, url) => {
-    console.error('[main] did-fail-load:', code, desc, url);
-    // 加载失败时显示错误页
-    win.loadURL(`data:text/html,<h1>加载失败</h1><p>${desc}</p>`);
   });
 
   win.on('closed', () => {
@@ -235,8 +359,35 @@ ipcMain.handle('shell:openExternal', async (_event, url: string) => {
   shell.openExternal(url);
 });
 
+// 调试日志 IPC
+ipcMain.handle('debug:append', async (_event, entry: any) => {
+  appendDebugLog(entry || {});
+  return { success: true };
+});
+
+ipcMain.handle('debug:read', async () => {
+  ensureDirs();
+  try {
+    const content = fs.existsSync(debugFile) ? fs.readFileSync(debugFile, 'utf-8') : '';
+    return { success: true, content };
+  } catch (e: any) {
+    return { success: false, error: e.message };
+  }
+});
+
+ipcMain.handle('debug:clear', async () => {
+  ensureDirs();
+  try {
+    fs.writeFileSync(debugFile, '', 'utf-8');
+    return { success: true };
+  } catch (e: any) {
+    return { success: false, error: e.message };
+  }
+});
+
 // App lifecycle
 app.whenReady().then(() => {
+  crashLog('app.ready fired');
   createWindow();
 
   app.on('activate', () => {
@@ -254,13 +405,16 @@ app.on('window-all-closed', () => {
 
 // Prevent multiple instances
 const gotLock = app.requestSingleInstanceLock();
-if (!gotLock) {
-  app.quit();
-} else {
-  app.on('second-instance', () => {
+crashLog(`singleInstanceLock: ${gotLock ? 'primary' : 'secondary (will focus existing)'}`);
+if (gotLock) {
+  app.on('second-instance', function() {
+    crashLog('second-instance event');
     if (mainWindow) {
       if (mainWindow.isMinimized()) mainWindow.restore();
       mainWindow.focus();
     }
   });
 }
+// 不再自动 quit，允许开发时多次启动调试
+
+crashLog('main.ts init done, waiting for app.ready...');
