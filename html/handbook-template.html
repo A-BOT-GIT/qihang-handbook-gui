@@ -1,0 +1,1208 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>起航研学产品手册统一模板</title>
+  <style>
+    :root {
+      --bg: #ede7dc;
+      --paper: #fbf8f2;
+      --paper-2: #f5efe5;
+      --ink: #18212c;
+      --muted: #67717d;
+      --line: rgba(24, 33, 44, 0.10);
+      --line-strong: rgba(24, 33, 44, 0.18);
+      --accent: #f09a4a;
+      --accent-soft: rgba(240, 154, 74, 0.14);
+      --teal: #4ab7b0;
+      --navy: #102132;
+      --white: #ffffff;
+      --shadow: 0 30px 80px rgba(18, 26, 36, 0.14);
+      --radius: 28px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      color: var(--ink);
+      font-family:
+        "Noto Sans CJK SC",
+        "PingFang SC",
+        "Hiragino Sans GB",
+        "Microsoft YaHei",
+        sans-serif;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+      background:
+        radial-gradient(circle at 15% 12%, rgba(73, 183, 176, 0.10), transparent 26%),
+        radial-gradient(circle at 82% 16%, rgba(240, 154, 74, 0.12), transparent 24%),
+        linear-gradient(180deg, #ece6da 0%, #f4efe6 45%, #efe8de 100%);
+    }
+
+    body {
+      padding: 24px;
+    }
+
+    .workspace {
+      display: grid;
+      gap: 24px;
+      justify-items: center;
+      max-width: 1700px;
+      margin: 0 auto;
+    }
+
+    .intro {
+      width: min(1500px, 100%);
+      display: grid;
+      gap: 8px;
+      padding: 6px 4px 2px;
+    }
+
+    .intro h1 {
+      margin: 0;
+      font-size: clamp(30px, 2.8vw, 42px);
+      line-height: 1.05;
+      letter-spacing: -0.04em;
+    }
+
+    .intro p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.7;
+      font-size: 15px;
+      max-width: 1120px;
+    }
+
+    .stack {
+      width: min(1500px, 100%);
+      display: grid;
+      gap: 28px;
+    }
+
+    .sheet {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 1600 / 2400;
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(18, 26, 36, 0.06);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.80), rgba(255,255,255,0.72)),
+        linear-gradient(180deg, var(--paper) 0%, #f7f2ea 100%);
+    }
+
+    .sheet::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(90deg, rgba(17, 33, 49, 0.02) 1px, transparent 1px) 0 0 / 72px 72px,
+        linear-gradient(rgba(17, 33, 49, 0.02) 1px, transparent 1px) 0 0 / 72px 72px;
+      mask-image: linear-gradient(180deg, rgba(0,0,0,0.28), transparent 84%);
+      pointer-events: none;
+    }
+
+    .sheet::after {
+      content: "";
+      position: absolute;
+      pointer-events: none;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(73, 183, 176, 0.12), transparent 66%);
+      filter: blur(10px);
+    }
+
+    .sheet.cover::after {
+      right: -90px;
+      top: 70px;
+      width: 460px;
+      height: 460px;
+    }
+
+    .sheet.section::after {
+      right: -120px;
+      top: 120px;
+      width: 380px;
+      height: 380px;
+    }
+
+    .sheet.content::after {
+      left: -110px;
+      bottom: -120px;
+      width: 520px;
+      height: 520px;
+    }
+
+    .sheet.case::after {
+      right: 60px;
+      bottom: -160px;
+      width: 520px;
+      height: 520px;
+    }
+
+    .sheet.contact::after {
+      right: -130px;
+      top: 80px;
+      width: 500px;
+      height: 500px;
+    }
+
+    .page {
+      position: relative;
+      z-index: 1;
+      height: 100%;
+      padding: 82px 82px 72px;
+      display: grid;
+      gap: 28px;
+    }
+
+    .section-label {
+      position: absolute;
+      left: 28px;
+      top: 28px;
+      z-index: 2;
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: rgba(17, 33, 49, 0.86);
+      color: #fff;
+      font-size: 12px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      box-shadow: 0 12px 20px rgba(17, 33, 49, 0.14);
+    }
+
+    .topbar {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 18px;
+      align-items: start;
+    }
+
+    .title-wrap {
+      position: relative;
+      padding-left: 24px;
+    }
+
+    .title-wrap::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 12px;
+      width: 10px;
+      height: 110px;
+      border-radius: 999px;
+      background: linear-gradient(180deg, var(--accent) 0%, #f6b56f 100%);
+      box-shadow: 0 0 0 8px rgba(240, 154, 74, 0.09);
+    }
+
+    .kicker {
+      margin: 0 0 12px;
+      font-size: 18px;
+      letter-spacing: 0.18em;
+      color: #7a6c57;
+      text-transform: uppercase;
+    }
+
+    .title {
+      margin: 0;
+      font-size: clamp(52px, 4.9vw, 80px);
+      line-height: 0.98;
+      letter-spacing: -0.05em;
+      font-weight: 900;
+    }
+
+    .subtitle {
+      margin: 16px 0 0;
+      font-size: 18px;
+      line-height: 1.65;
+      color: var(--muted);
+      max-width: 820px;
+    }
+
+    .brand-badge {
+      align-self: start;
+      min-width: 260px;
+      padding: 18px 20px 16px;
+      border-radius: 18px;
+      background: linear-gradient(180deg, rgba(17, 33, 49, 0.96), rgba(17, 33, 49, 0.88));
+      color: #fff;
+      box-shadow: 0 18px 34px rgba(17, 33, 49, 0.18);
+    }
+
+    .brand-badge .small {
+      display: block;
+      margin-bottom: 10px;
+      font-size: 12px;
+      letter-spacing: 0.22em;
+      color: rgba(255,255,255,0.68);
+      text-transform: uppercase;
+    }
+
+    .brand-badge .big {
+      font-size: 28px;
+      line-height: 1.08;
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+
+    .brand-badge .desc {
+      font-size: 14px;
+      line-height: 1.55;
+      color: rgba(255,255,255,0.72);
+    }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .metric {
+      min-height: 116px;
+      padding: 20px 18px 16px;
+      border-radius: 20px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.92), rgba(255,255,255,0.76));
+      border: 1px solid rgba(24, 33, 44, 0.08);
+      box-shadow: 0 12px 24px rgba(24, 33, 44, 0.05);
+    }
+
+    .metric .num {
+      font-size: 34px;
+      line-height: 1;
+      font-weight: 900;
+      letter-spacing: -0.05em;
+      color: var(--navy);
+    }
+
+    .metric .label {
+      margin-top: 10px;
+      font-size: 15px;
+      font-weight: 800;
+      color: #415061;
+    }
+
+    .metric .note {
+      margin-top: 6px;
+      font-size: 13px;
+      line-height: 1.45;
+      color: var(--muted);
+    }
+
+    .main {
+      display: grid;
+      gap: 22px;
+      min-height: 0;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1.05fr 0.95fr;
+      gap: 22px;
+      min-height: 0;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .card {
+      border-radius: 24px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.92), rgba(255,255,255,0.80));
+      border: 1px solid rgba(24, 33, 44, 0.09);
+      box-shadow: 0 14px 28px rgba(24, 33, 44, 0.06);
+      overflow: hidden;
+    }
+
+    .card.pad {
+      padding: 24px 24px 22px;
+    }
+
+    .section-title {
+      margin: 0 0 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 20px;
+      font-weight: 900;
+      letter-spacing: -0.02em;
+    }
+
+    .section-title::before {
+      content: "";
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      background: var(--accent);
+      box-shadow: 0 0 0 6px var(--accent-soft);
+      flex: 0 0 auto;
+    }
+
+    .lead {
+      margin: 0;
+      font-size: 24px;
+      line-height: 1.52;
+      font-weight: 800;
+      color: var(--ink);
+      max-width: 640px;
+    }
+
+    .body-copy {
+      margin: 14px 0 0;
+      color: var(--muted);
+      line-height: 1.85;
+      font-size: 15px;
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .chip {
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: rgba(17, 33, 49, 0.06);
+      border: 1px solid rgba(17, 33, 49, 0.08);
+      color: #314152;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .feature-list {
+      display: grid;
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .feature {
+      display: grid;
+      grid-template-columns: 92px 1fr;
+      gap: 14px;
+      align-items: start;
+      padding: 14px 16px;
+      border-radius: 18px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.86), rgba(245,242,235,0.76));
+      border: 1px solid rgba(24, 33, 44, 0.08);
+    }
+
+    .feature .tag {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 36px;
+      border-radius: 999px;
+      background: rgba(73, 183, 176, 0.14);
+      color: #296c66;
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .feature .txt {
+      color: var(--muted);
+      line-height: 1.65;
+      font-size: 14px;
+    }
+
+    .photo {
+      position: relative;
+      border-radius: 24px;
+      overflow: hidden;
+      border: 1px solid rgba(24, 33, 44, 0.09);
+      box-shadow: 0 18px 34px rgba(24, 33, 44, 0.10);
+      background: #d9e0e6;
+      min-height: 0;
+    }
+
+    .photo img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .photo::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(0,0,0,0.02), rgba(0,0,0,0.18));
+      pointer-events: none;
+    }
+
+    .caption {
+      position: absolute;
+      left: 18px;
+      right: 18px;
+      bottom: 18px;
+      z-index: 1;
+      padding: 14px 16px;
+      border-radius: 16px;
+      background: linear-gradient(180deg, rgba(17,33,49,0.18), rgba(17,33,49,0.74));
+      color: #fff;
+      backdrop-filter: blur(6px);
+    }
+
+    .caption .name {
+      margin: 0 0 4px;
+      font-size: 17px;
+      font-weight: 800;
+    }
+
+    .caption .desc {
+      margin: 0;
+      font-size: 13px;
+      line-height: 1.5;
+      color: rgba(255,255,255,0.84);
+    }
+
+    .visual-stack {
+      display: grid;
+      gap: 16px;
+      min-height: 0;
+    }
+
+    .visual-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      min-height: 0;
+    }
+
+    .summary {
+      padding: 22px;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .mini {
+      padding: 14px 14px 13px;
+      border-radius: 16px;
+      background: rgba(17, 33, 49, 0.04);
+      border: 1px solid rgba(17, 33, 49, 0.07);
+    }
+
+    .mini .hd {
+      margin-bottom: 6px;
+      font-size: 12px;
+      letter-spacing: 0.12em;
+      color: #6d7782;
+      text-transform: uppercase;
+    }
+
+    .mini .bd {
+      font-size: 14px;
+      line-height: 1.6;
+      color: #233140;
+      font-weight: 700;
+    }
+
+    .bullet-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .bullet {
+      padding: 16px 16px 15px;
+      border-radius: 18px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.90), rgba(245,242,235,0.76));
+      border: 1px solid rgba(24, 33, 44, 0.08);
+      min-height: 96px;
+    }
+
+    .bullet .t {
+      font-size: 13px;
+      font-weight: 800;
+      color: #2f3d4c;
+      margin-bottom: 8px;
+    }
+
+    .bullet .d {
+      font-size: 13px;
+      line-height: 1.55;
+      color: var(--muted);
+    }
+
+    .table {
+      display: grid;
+      gap: 8px;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1.1fr 1.1fr 1.6fr;
+      gap: 10px;
+    }
+
+    .cell {
+      padding: 12px 14px;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.82);
+      border: 1px solid rgba(24, 33, 44, 0.08);
+      font-size: 13px;
+      line-height: 1.5;
+      color: #263443;
+    }
+
+    .cell.head {
+      background: rgba(17, 33, 49, 0.92);
+      color: #fff;
+      font-weight: 800;
+      text-align: center;
+    }
+
+    .flow {
+      display: grid;
+      gap: 14px;
+    }
+
+    .flow-item {
+      display: grid;
+      grid-template-columns: 56px 1fr;
+      gap: 14px;
+      align-items: start;
+      padding: 14px 16px;
+      border-radius: 18px;
+      background: rgba(255,255,255,0.84);
+      border: 1px solid rgba(24, 33, 44, 0.08);
+    }
+
+    .flow-item .idx {
+      width: 56px;
+      height: 56px;
+      border-radius: 18px;
+      background: linear-gradient(180deg, var(--accent), #f5b66d);
+      color: #fff;
+      display: grid;
+      place-items: center;
+      font-weight: 900;
+      font-size: 18px;
+      box-shadow: 0 12px 24px rgba(240, 154, 74, 0.20);
+    }
+
+    .flow-item .txt {
+      color: var(--muted);
+      line-height: 1.68;
+      font-size: 14px;
+    }
+
+    .timeline {
+      display: grid;
+      gap: 12px;
+      position: relative;
+      padding-left: 14px;
+    }
+
+    .timeline::before {
+      content: "";
+      position: absolute;
+      left: 18px;
+      top: 4px;
+      bottom: 4px;
+      width: 2px;
+      background: linear-gradient(180deg, rgba(73,183,176,0.3), rgba(240,154,74,0.3));
+    }
+
+    .time {
+      position: relative;
+      display: grid;
+      grid-template-columns: 84px 1fr;
+      gap: 14px;
+      align-items: start;
+      padding: 12px 14px 12px 0;
+    }
+
+    .time::before {
+      content: "";
+      position: absolute;
+      left: 11px;
+      top: 19px;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #fff;
+      border: 3px solid var(--teal);
+      box-shadow: 0 0 0 6px rgba(73, 183, 176, 0.10);
+    }
+
+    .time .tag {
+      padding-top: 1px;
+      font-size: 13px;
+      font-weight: 900;
+      color: #334251;
+    }
+
+    .time .desc {
+      font-size: 14px;
+      line-height: 1.6;
+      color: var(--muted);
+    }
+
+    .contact {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 20px;
+      min-height: 0;
+    }
+
+    .contact-panel {
+      border-radius: 24px;
+      background: linear-gradient(180deg, rgba(17,33,49,0.96), rgba(17,33,49,0.90));
+      color: #fff;
+      padding: 24px;
+      display: grid;
+      gap: 16px;
+      align-content: start;
+      box-shadow: 0 18px 34px rgba(17,33,49,0.18);
+    }
+
+    .contact-panel .label {
+      font-size: 12px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.65);
+    }
+
+    .contact-panel .name {
+      font-size: 26px;
+      font-weight: 900;
+      line-height: 1.08;
+    }
+
+    .contact-panel .line {
+      font-size: 15px;
+      line-height: 1.7;
+      color: rgba(255,255,255,0.88);
+    }
+
+    .qr {
+      border-radius: 24px;
+      background: rgba(255,255,255,0.82);
+      border: 1px solid rgba(24, 33, 44, 0.08);
+      padding: 20px;
+      display: grid;
+      gap: 14px;
+      align-content: start;
+    }
+
+    .qr-box {
+      aspect-ratio: 1 / 1;
+      border-radius: 20px;
+      background:
+        linear-gradient(135deg, rgba(17,33,49,0.06), transparent 35%),
+        repeating-linear-gradient(90deg, rgba(17,33,49,0.12) 0 10px, transparent 10px 20px),
+        repeating-linear-gradient(0deg, rgba(17,33,49,0.12) 0 10px, transparent 10px 20px),
+        #fff;
+      border: 1px solid rgba(24, 33, 44, 0.10);
+      display: grid;
+      place-items: center;
+      color: #64707d;
+      font-size: 13px;
+      font-weight: 700;
+      text-align: center;
+      padding: 16px;
+    }
+
+    .qr .hint {
+      color: var(--muted);
+      line-height: 1.7;
+      font-size: 14px;
+    }
+
+    .pager {
+      position: absolute;
+      right: 78px;
+      bottom: 60px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      z-index: 2;
+    }
+
+    .pager .num {
+      font-size: 22px;
+      font-weight: 800;
+      color: #3a434d;
+    }
+
+    .pager .bar {
+      width: 160px;
+      height: 22px;
+      border-radius: 0 999px 999px 0;
+      background: linear-gradient(90deg, var(--teal), #8ad4cb);
+      clip-path: polygon(16px 0, 100% 0, calc(100% - 18px) 100%, 0 100%);
+      box-shadow: 0 10px 22px rgba(73, 183, 176, 0.22);
+    }
+
+    .vertical {
+      position: absolute;
+      right: 36px;
+      top: 56px;
+      writing-mode: vertical-rl;
+      text-orientation: upright;
+      letter-spacing: 0.24em;
+      font-size: 40px;
+      font-weight: 900;
+      color: rgba(211, 176, 132, 0.42);
+      user-select: none;
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    .page-foot {
+      position: absolute;
+      left: 82px;
+      bottom: 62px;
+      right: 260px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      z-index: 2;
+    }
+
+    .page-foot .line {
+      height: 1px;
+      flex: 1;
+      background: linear-gradient(90deg, rgba(24,33,44,0.08), rgba(24,33,44,0.18));
+    }
+
+    .page-foot .text {
+      font-size: 14px;
+      color: #55606c;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .photo.hero {
+      min-height: 430px;
+    }
+
+    .photo.small {
+      min-height: 240px;
+    }
+
+    .photo.banner {
+      min-height: 320px;
+    }
+
+    .center {
+      display: grid;
+      place-items: center;
+      padding: 26px;
+      text-align: center;
+    }
+
+    .placeholder {
+      display: grid;
+      place-items: center;
+      min-height: 100%;
+      color: #5f6b77;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      background:
+        radial-gradient(circle at 50% 50%, rgba(73, 183, 176, 0.14), transparent 52%),
+        linear-gradient(180deg, rgba(255,255,255,0.84), rgba(240,237,230,0.62));
+      border-radius: 24px;
+      border: 1px dashed rgba(24, 33, 44, 0.16);
+    }
+
+    .placeholder .big {
+      font-size: 28px;
+      color: #2b3947;
+      margin-bottom: 8px;
+      letter-spacing: -0.03em;
+      text-transform: none;
+    }
+
+    @media (max-width: 1180px) {
+      body { padding: 12px; }
+      .sheet { aspect-ratio: auto; min-height: 0; }
+      .page {
+        padding: 36px 22px 80px;
+        gap: 20px;
+      }
+      .topbar,
+      .grid-2,
+      .grid-3,
+      .metrics,
+      .contact,
+      .visual-grid,
+      .bullet-grid {
+        grid-template-columns: 1fr;
+      }
+      .vertical { display: none; }
+      .page-foot { left: 22px; right: 22px; bottom: 22px; }
+      .pager { right: 22px; bottom: 20px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="workspace">
+    <header class="intro">
+      <h1>起航研学产品手册统一模板</h1>
+      <p>
+        这是整本手册的版式模板文件。你可以把它当作 Figma / PPT / Canvas 的视觉母版：
+        所有章节页都基于同一套标题、卡片、图片区、数据区和页脚样式展开，后续只替换内容即可。
+      </p>
+    </header>
+
+    <div class="stack">
+      <section class="sheet cover">
+        <div class="section-label">Template 01 / Cover</div>
+        <div class="vertical">起航研学</div>
+        <div class="page">
+          <div class="topbar">
+            <div class="title-wrap">
+              <p class="kicker">Product Handbook / Cover</p>
+              <h2 class="title">起航研学产品手册</h2>
+              <p class="subtitle">
+                封面页模板用于建立第一印象。建议在这里放品牌名、英文名、主张语和一张强视觉主图，形成清晰的封面识别。
+              </p>
+            </div>
+            <aside class="brand-badge">
+              <span class="small">SET SAIL STUDY TOUR</span>
+              <div class="big">国际一流的青少年成长平台与研学智库</div>
+              <div class="desc">封面信息应简洁，重点留给品牌主标题和图像氛围。</div>
+            </aside>
+          </div>
+
+          <div class="grid-2" style="align-items: stretch;">
+            <div class="card pad">
+              <h3 class="section-title">封面文案骨架</h3>
+              <p class="lead">用一句话说清楚“是谁、做什么、为什么可信”。</p>
+              <p class="body-copy">
+                封面不堆信息，保留一条主视觉路径、一个核心主张、一个英文补充标题即可。
+                若需要加入数据，可只保留 100+ 次活动、20000+ 学生等最强背书。
+              </p>
+              <div class="chips">
+                <span class="chip">品牌名</span>
+                <span class="chip">英文名</span>
+                <span class="chip">定位主张</span>
+                <span class="chip">主视觉图</span>
+              </div>
+            </div>
+
+            <figure class="photo hero">
+              <img src="./寻根之旅客家与闽南.jpg" alt="封面主视觉示意" />
+              <figcaption class="caption">
+                <p class="name">主视觉区</p>
+                <p class="desc">用于封面页、章节开页或品牌故事页。</p>
+              </figcaption>
+            </figure>
+          </div>
+
+          <div class="page-foot">
+            <span class="text">Foundation Template</span>
+            <span class="line"></span>
+          </div>
+          <div class="pager">
+            <div class="num">01</div>
+            <div class="bar"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="sheet section">
+        <div class="section-label">Template 02 / Section Opener</div>
+        <div class="page">
+          <div class="topbar">
+            <div class="title-wrap">
+              <p class="kicker">Chapter Divider / Section Page</p>
+              <h2 class="title" style="font-size: clamp(48px, 4.8vw, 74px);">品牌与企业概况</h2>
+              <p class="subtitle">
+                章节页模板用于承接目录和正文。建议左侧给出章节名称、章节关键词和一句话概述，右侧放一张大图或抽象视觉。
+              </p>
+            </div>
+            <aside class="brand-badge">
+              <span class="small">SECTION</span>
+              <div class="big">品牌信任建立页</div>
+              <div class="desc">适合每个大章开头，帮助读者快速识别章节主题。</div>
+            </aside>
+          </div>
+
+          <div class="grid-2">
+            <div class="card pad">
+              <h3 class="section-title">本章结构</h3>
+              <div class="timeline">
+                <div class="time">
+                  <div class="tag">01</div>
+                  <div class="desc">品牌定位、成立时间、集团归属、联系电话等基础信息。</div>
+                </div>
+                <div class="time">
+                  <div class="tag">02</div>
+                  <div class="desc">愿景、使命、价值观与业务边界，建立品牌叙事。</div>
+                </div>
+                <div class="time">
+                  <div class="tag">03</div>
+                  <div class="desc">关键数据与核心优势，给读者一个快速信任入口。</div>
+                </div>
+              </div>
+            </div>
+
+            <figure class="photo banner">
+              <div class="placeholder">
+                <div>
+                  <div class="big">章节主图 / 视觉过渡图</div>
+                  <div>这里可替换为整页照片、场景图或抽象化背景图</div>
+                </div>
+              </div>
+            </figure>
+          </div>
+
+          <div class="page-foot">
+            <span class="text">Chapter Template</span>
+            <span class="line"></span>
+          </div>
+          <div class="pager">
+            <div class="num">02</div>
+            <div class="bar"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="sheet content">
+        <div class="section-label">Template 03 / Content Page</div>
+        <div class="page">
+          <div class="topbar">
+            <div class="title-wrap">
+              <p class="kicker">Content Layout / Information Page</p>
+              <h2 class="title" style="font-size: clamp(46px, 4.5vw, 72px);">企业概况与核心优势</h2>
+              <p class="subtitle">
+                内容页模板用于承载密度较高的正文。左侧讲清定义、价值和业务，右侧用数据卡、图片和短块说明支撑信息层级。
+              </p>
+            </div>
+            <aside class="brand-badge">
+              <span class="small">DATA DRIVEN</span>
+              <div class="big">信息密度页</div>
+              <div class="desc">适合品牌介绍、课程体系总览和优势说明。</div>
+            </aside>
+          </div>
+
+          <div class="metrics">
+            <div class="metric">
+              <div class="num">2023</div>
+              <div class="label">成立时间</div>
+              <div class="note">新锐品牌，需要强调成立时间和成长速度。</div>
+            </div>
+            <div class="metric">
+              <div class="num">100+</div>
+              <div class="label">活动次数</div>
+              <div class="note">用高频活动建立经验信任。</div>
+            </div>
+            <div class="metric">
+              <div class="num">20000+</div>
+              <div class="label">服务学生</div>
+              <div class="note">用规模数据补强专业性。</div>
+            </div>
+            <div class="metric">
+              <div class="num">K12</div>
+              <div class="label">主要客群</div>
+              <div class="note">手册面向学生、学校与政企合作场景。</div>
+            </div>
+          </div>
+
+          <div class="grid-2">
+            <div class="card pad">
+              <h3 class="section-title">品牌定位</h3>
+              <p class="lead">打造国际一流的青少年成长平台与研学智库。</p>
+              <p class="body-copy">
+                起航研学依托百合外国语教育集团的教育资源，形成国际教育、国内研学、学校实践、交流活动与党建活动的完整产品矩阵。
+                页面布局上建议以“主张 + 数据 + 解释”的顺序建立信息信任。
+              </p>
+              <div class="chips">
+                <span class="chip">集团背书</span>
+                <span class="chip">课程完整</span>
+                <span class="chip">场景丰富</span>
+                <span class="chip">定制能力</span>
+              </div>
+            </div>
+
+            <div class="visual-stack">
+              <figure class="photo small">
+                <img src="./微信图片_20260526230233_606_2.jpg" alt="辅助图示例" />
+                <figcaption class="caption">
+                  <p class="name">辅助图 / 侧栏图</p>
+                  <p class="desc">适合放在内容页右侧，承担视觉缓冲。</p>
+                </figcaption>
+              </figure>
+
+              <div class="card summary">
+                <h3 class="section-title" style="margin-bottom: 12px;">业务骨架</h3>
+                <div class="summary-grid">
+                  <div class="mini">
+                    <div class="hd">Core 01</div>
+                    <div class="bd">常规研学、假期营、周末营。</div>
+                  </div>
+                  <div class="mini">
+                    <div class="hd">Core 02</div>
+                    <div class="bd">国际教育、海外研学、跨境交流。</div>
+                  </div>
+                  <div class="mini">
+                    <div class="hd">Core 03</div>
+                    <div class="bd">学校实践、定制活动、项目交付。</div>
+                  </div>
+                  <div class="mini">
+                    <div class="hd">Core 04</div>
+                    <div class="bd">党建教育、教师研修、政企合作。</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="page-foot">
+            <span class="text">Information Template</span>
+            <span class="line"></span>
+          </div>
+          <div class="pager">
+            <div class="num">03</div>
+            <div class="bar"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="sheet case">
+        <div class="section-label">Template 04 / Case Page</div>
+        <div class="page">
+          <div class="topbar">
+            <div class="title-wrap">
+              <p class="kicker">Programs / Case Study Layout</p>
+              <h2 class="title" style="font-size: clamp(46px, 4.5vw, 72px);">项目案例展示页</h2>
+              <p class="subtitle">
+                案例页模板用于国际研学、国内研学、学校实践、交流活动和党建活动。核心目标是让项目“有标题、有地点、有特色、有图像”。
+              </p>
+            </div>
+            <aside class="brand-badge">
+              <span class="small">CASE FORMAT</span>
+              <div class="big">图文案例页</div>
+              <div class="desc">建议单页聚焦 2-4 个案例，避免信息堆满。</div>
+            </aside>
+          </div>
+
+          <div class="grid-2">
+            <div class="visual-stack">
+              <figure class="photo banner">
+                <div class="placeholder">
+                  <div>
+                    <div class="big">项目主图 / 主题图</div>
+                    <div>可放入一张大场景图，作为案例页视觉锚点</div>
+                  </div>
+                </div>
+              </figure>
+              <div class="bullet-grid">
+                <div class="bullet">
+                  <div class="t">项目名称</div>
+                  <div class="d">建议采用“地点 + 主题 + 营”的命名结构，清晰可读。</div>
+                </div>
+                <div class="bullet">
+                  <div class="t">项目特色</div>
+                  <div class="d">用 1-2 句概括活动亮点，不展开过长叙述。</div>
+                </div>
+                <div class="bullet">
+                  <div class="t">活动地点</div>
+                  <div class="d">统一写法，放到同一栏位，方便横向比较。</div>
+                </div>
+                <div class="bullet">
+                  <div class="t">适用场景</div>
+                  <div class="d">可标注学校、家庭、政企、寒暑假等对象。</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card pad">
+              <h3 class="section-title">案例信息结构</h3>
+              <div class="flow">
+                <div class="flow-item">
+                  <div class="idx">01</div>
+                  <div class="txt">标题：项目名 + 地点 + 主题词。避免一个项目使用多种命名方式。</div>
+                </div>
+                <div class="flow-item">
+                  <div class="idx">02</div>
+                  <div class="txt">内容：时长、地点、特色、参与对象，用最少文字表达最强卖点。</div>
+                </div>
+                <div class="flow-item">
+                  <div class="idx">03</div>
+                  <div class="txt">视觉：单图大图优先，其次是图组；每页只保留一个视觉中心。</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="page-foot">
+            <span class="text">Case Template</span>
+            <span class="line"></span>
+          </div>
+          <div class="pager">
+            <div class="num">04</div>
+            <div class="bar"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="sheet contact">
+        <div class="section-label">Template 05 / Contact Page</div>
+        <div class="page">
+          <div class="topbar">
+            <div class="title-wrap">
+              <p class="kicker">Closing Page / Contact</p>
+              <h2 class="title" style="font-size: clamp(46px, 4.5vw, 72px);">合作与联系</h2>
+              <p class="subtitle">
+                结尾页模板用于完成收口。建议只保留公司名称、地址、电话和一个行动提示，让用户知道下一步该联系谁。
+              </p>
+            </div>
+            <aside class="brand-badge">
+              <span class="small">CALL TO ACTION</span>
+              <div class="big">转化收口页</div>
+              <div class="desc">负责把手册阅读转成实际咨询与合作动作。</div>
+            </aside>
+          </div>
+
+          <div class="contact">
+            <div class="contact-panel">
+              <div class="label">Cooperation & Contact</div>
+              <div class="name">起航研学<br />SET SAIL STUDY TOUR</div>
+              <div class="line">公司：起航研学（百合外国语教育集团旗下）</div>
+              <div class="line">地址：深圳市龙岗区布吉街道百外教育大厦六楼</div>
+              <div class="line">电话：0755-84535030</div>
+              <div class="line">适合作为手册最后一页、封底或宣传单页转化页。</div>
+            </div>
+
+            <div class="qr">
+              <div class="qr-box">
+                <div>
+                  <div style="font-size: 28px; color:#2c3a48; margin-bottom: 6px;">二维码位</div>
+                  <div>这里可替换为公众号 / 联系二维码</div>
+                </div>
+              </div>
+              <div class="hint">
+                结尾页建议保留较大的留白和明确的视觉中心，不再插入过多案例内容，保证转化动作足够突出。
+              </div>
+            </div>
+          </div>
+
+          <div class="page-foot">
+            <span class="text">Closing Template</span>
+            <span class="line"></span>
+          </div>
+          <div class="pager">
+            <div class="num">05</div>
+            <div class="bar"></div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+</body>
+</html>
